@@ -1,0 +1,81 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lunch Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .report-title {
+            text-align: center;
+        }
+        table {
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding-top: 2px;
+            text-align: center;
+        }
+        th, .total-td {
+            background-color: #eeeeee;
+            font-weight: bold;
+        }
+        .total-quantity-row {
+            background-color: #dcdcdc;
+            font-weight: bold;
+        }
+    </style>
+  </head>
+  <body>
+    {% for item, orders in lunch_data.items %}
+        <h2 class="report-title">{{ item }} Report</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Teacher</th>
+                    <th>Student</th>
+                    <th>{{ item }} Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% with orders=orders|move_key_to_end:'-' %}
+                    {% for teacher, orderers in orders.items %}
+                        {% for orderer, value in orderers.items %}
+                            <tr>
+                                {% if teacher == '-' %}
+                                    <td>{{ teacher }}</td>    
+                                {% else %}
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ orderers|get_length }}">{{ teacher }}</td>    
+                                    {% endif %}
+                                {% endif %}
+                                <td>{{ orderer }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                        {% if teacher != '-' %}
+                            <tr>
+                                <td class="total-td"><strong>Total</strong></td>
+                                <td class="total-td"><strong>{{ orderers|calculate_total}}</strong></td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+                <tr class="total-quantity-row">
+                    <td colspan="2"><strong>Total Quantity</strong></td>
+                    <td><strong>{{ orders|calculate_grand_total}}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    {% endfor %}
+  </body>
+</html>
